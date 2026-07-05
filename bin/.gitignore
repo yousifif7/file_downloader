@@ -1,0 +1,13 @@
+*
+!.gitignore
+!README.md
+!setup-linux.sh
+!hostinger-cron.sh
+!deno
+!yt-dlp.sh
+!yt-dlp.py
+!yt-dlp
+!yt-dlp.bin
+!yt-dlp.exe
+!ffmpeg
+!ffmpeg.exe
