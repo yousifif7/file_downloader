@@ -145,9 +145,22 @@ class DownloadController extends Controller
             abort(404);
         }
 
-        $filename = ($download->media_title ?: 'download').'.'.pathinfo($download->file_path, PATHINFO_EXTENSION);
+        $filename = $this->safeDownloadFilename($download);
 
         return Storage::disk('local')->download($download->file_path, $filename);
+    }
+
+    private function safeDownloadFilename(Download $download): string
+    {
+        $title = trim(str_replace(['/', '\\'], '-', (string) ($download->media_title ?: 'download')));
+
+        if ($title === '') {
+            $title = 'download';
+        }
+
+        $extension = pathinfo((string) $download->file_path, PATHINFO_EXTENSION);
+
+        return $extension !== '' ? "{$title}.{$extension}" : $title;
     }
 
     private function authorizeDownload(Download $download): void

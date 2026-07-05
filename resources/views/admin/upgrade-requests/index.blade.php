@@ -5,8 +5,8 @@
 @section('content')
     <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-white">Bank transfer upgrades</h1>
-            <p class="text-sm text-slate-500 mt-1">Review customer payments and activate their plans.</p>
+            <h1 class="text-2xl font-semibold text-white">Upgrade requests</h1>
+            <p class="text-sm text-slate-500 mt-1">Review bank transfer payments and monitor crypto checkouts.</p>
         </div>
         @if ($pendingCount > 0)
             <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
@@ -22,6 +22,7 @@
             <option value="pending" @selected($status === 'pending')>Pending</option>
             <option value="approved" @selected($status === 'approved')>Approved</option>
             <option value="rejected" @selected($status === 'rejected')>Rejected</option>
+            <option value="cancelled" @selected($status === 'cancelled')>Cancelled</option>
         </select>
         <button class="btn-secondary justify-center sm:justify-start">Filter</button>
     </form>
@@ -39,7 +40,9 @@
                                 'bg-amber-500/10 text-amber-300 border border-amber-500/20' => $upgradeRequest->isPending(),
                                 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' => $upgradeRequest->status === 'approved',
                                 'bg-red-500/10 text-red-300 border border-red-500/20' => $upgradeRequest->status === 'rejected',
+                                'bg-slate-500/10 text-slate-400 border border-slate-600/40' => $upgradeRequest->status === 'cancelled',
                             ])>{{ $upgradeRequest->statusLabel() }}</span>
+                            <span class="text-xs rounded-full px-2.5 py-0.5 border border-slate-700 text-slate-400">{{ $upgradeRequest->paymentMethodLabel() }}</span>
                         </div>
                         <p class="text-slate-300">
                             Wants <strong class="text-white">{{ $upgradeRequest->plan?->name }}</strong>
@@ -53,6 +56,14 @@
                         </p>
                         @if ($upgradeRequest->payer_note)
                             <p class="text-slate-400">Customer note: {{ $upgradeRequest->payer_note }}</p>
+                        @endif
+                        @if ($upgradeRequest->isCrypto() && $upgradeRequest->invoice_url)
+                            <p class="text-slate-400">
+                                <a href="{{ $upgradeRequest->invoice_url }}" target="_blank" rel="noopener" class="text-violet-400 hover:text-violet-300">View Plisio invoice →</a>
+                                @if ($upgradeRequest->provider_payment_id)
+                                    · Txn {{ $upgradeRequest->provider_payment_id }}
+                                @endif
+                            </p>
                         @endif
                         @if ($upgradeRequest->receiptUrl())
                             <div class="pt-2">
@@ -74,7 +85,7 @@
                         @endif
                     </div>
 
-                    @if ($upgradeRequest->isPending())
+                    @if ($upgradeRequest->isPending() && $upgradeRequest->isBankTransfer())
                         <div class="flex flex-col gap-2 w-full lg:w-72 shrink-0">
                             <form method="POST" action="{{ route('admin.upgrade-requests.approve', $upgradeRequest) }}" class="space-y-2">
                                 @csrf
@@ -88,6 +99,8 @@
                             </form>
                             <a href="{{ route('admin.users.show', $upgradeRequest->user) }}" class="text-center text-xs text-violet-400 hover:text-violet-300">View user account</a>
                         </div>
+                    @elseif ($upgradeRequest->isPending() && $upgradeRequest->isCrypto())
+                        <p class="text-sm text-slate-400 shrink-0 max-w-xs">Waiting for on-chain confirmation — activates automatically.</p>
                     @else
                         <a href="{{ route('admin.users.show', $upgradeRequest->user) }}" class="text-sm text-violet-400 hover:text-violet-300 shrink-0">View user</a>
                     @endif

@@ -16,15 +16,39 @@
             </div>
         @endif
 
+        @if (session('status'))
+            <div class="mb-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-5 py-4 text-sm">{{ session('status') }}</div>
+        @endif
+
         @if ($pendingUpgradeRequests->isNotEmpty())
             <div class="mb-8 rounded-2xl border border-violet-500/20 bg-violet-500/10 px-5 py-4 text-sm text-violet-100">
-                <p class="font-semibold text-violet-200">Payment under review</p>
+                <p class="font-semibold text-violet-200">Bank transfer under review</p>
                 <p class="mt-1">We are verifying your bank transfer for
                     <strong class="text-white">{{ $pendingUpgradeRequests->first()->plan?->name }}</strong>.
                     Your plan will activate after approval (usually within {{ config('billing.activation_hours', 24) }} hours on business days).
                 </p>
             </div>
         @endif
+
+        @foreach ($pendingCryptoRequests as $pendingCrypto)
+            <div class="mb-8 rounded-2xl border border-slate-700/80 bg-slate-900/40 px-5 py-4 text-sm text-slate-300">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="font-semibold text-white">Open crypto checkout — {{ $pendingCrypto->plan?->name }}</p>
+                        <p class="mt-1 text-slate-400">Complete payment on Plisio or cancel to try again later.</p>
+                        @if ($pendingCrypto->invoice_url)
+                            <a href="{{ $pendingCrypto->invoice_url }}" target="_blank" rel="noopener" class="inline-block mt-2 text-violet-400 hover:text-violet-300 underline">
+                                Open checkout →
+                            </a>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('account.upgrade-requests.cancel-crypto', $pendingCrypto) }}" class="shrink-0">
+                        @csrf
+                        <button type="submit" class="text-xs text-slate-500 hover:text-slate-300 underline">Cancel checkout</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
 
         @php
             $notifications = isset($upgradeNotifications)

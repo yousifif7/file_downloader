@@ -11,6 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('downloads:cleanup')->daily();
 Schedule::command('quotas:reset')->monthlyOn(1, '00:05');
 Schedule::command('subscriptions:process')->dailyAt('01:00');
+Schedule::command('billing:expire-crypto-invoices')->hourly();
 
 Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=2')
     ->everyMinute()

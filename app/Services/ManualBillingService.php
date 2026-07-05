@@ -52,6 +52,7 @@ class ManualBillingService
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'status' => PlanUpgradeRequest::STATUS_PENDING,
+            'payment_method' => PlanUpgradeRequest::PAYMENT_METHOD_BANK,
             'payment_reference' => trim($paymentReference),
             'payer_note' => $payerNote ? trim($payerNote) : null,
             'receipt_path' => $receiptPath,
@@ -96,17 +97,21 @@ class ManualBillingService
                 'reviewed_at' => now(),
             ])->save();
 
-            $user = $request->user;
-            $user->forceFill([
-                'plan_id' => $request->plan_id,
-                'billing_provider' => config('billing.provider'),
-                'subscription_status' => User::SUBSCRIPTION_ACTIVE,
-                'subscription_renews_at' => now()->addMonth(),
-                'subscription_ends_at' => null,
-            ])->save();
+            $this->applyActiveSubscription($request->user, $request->plan_id, config('billing.provider'));
 
-            Mail::to($user->email)->send(new PlanUpgradeApprovedMail($request->fresh(['user', 'plan'])));
+            Mail::to($request->user->email)->send(new PlanUpgradeApprovedMail($request->fresh(['user', 'plan'])));
         });
+    }
+
+    private function applyActiveSubscription(User $user, int $planId, string $billingProvider): void
+    {
+        $user->forceFill([
+            'plan_id' => $planId,
+            'billing_provider' => $billingProvider,
+            'subscription_status' => User::SUBSCRIPTION_ACTIVE,
+            'subscription_renews_at' => now()->addMonth(),
+            'subscription_ends_at' => null,
+        ])->save();
     }
 
     public function reject(PlanUpgradeRequest $request, User $reviewer, ?string $adminNote = null): void
