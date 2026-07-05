@@ -7,14 +7,18 @@ use App\Models\Download;
 use App\Models\PlanUpgradeRequest;
 use App\Models\SupportTicket;
 use App\Models\User;
+use App\Services\PlisioBillingService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(PlisioBillingService $cryptoBilling): View
     {
+        $cryptoBilling->expireStaleCryptoRequests();
+
         $pendingUpgradeCount = PlanUpgradeRequest::query()
             ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+            ->where('payment_method', PlanUpgradeRequest::PAYMENT_METHOD_BANK)
             ->count();
 
         $awaitingStaffTicketCount = SupportTicket::query()
@@ -33,6 +37,7 @@ class DashboardController extends Controller
             'recentPendingUpgrades' => PlanUpgradeRequest::query()
                 ->with(['user', 'plan'])
                 ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+                ->where('payment_method', PlanUpgradeRequest::PAYMENT_METHOD_BANK)
                 ->latest()
                 ->limit(5)
                 ->get(),

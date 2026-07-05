@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\PlanUpgradeRequest;
 use App\Services\DownloadQuotaService;
+use App\Services\PlisioBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    public function index(DownloadQuotaService $quotaService): View
+    public function index(DownloadQuotaService $quotaService, PlisioBillingService $cryptoBilling): View
     {
+        $cryptoBilling->expireStaleCryptoRequests();
+
         $user = auth()->user()->load('plan');
 
         $upgradeNotifications = $user->planUpgradeRequests()
@@ -28,6 +31,13 @@ class AccountController extends Controller
             'pendingUpgradeRequests' => $user->planUpgradeRequests()
                 ->with('plan')
                 ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+                ->where('payment_method', PlanUpgradeRequest::PAYMENT_METHOD_BANK)
+                ->latest()
+                ->get(),
+            'pendingCryptoRequests' => $user->planUpgradeRequests()
+                ->with('plan')
+                ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+                ->where('payment_method', PlanUpgradeRequest::PAYMENT_METHOD_CRYPTO)
                 ->latest()
                 ->get(),
             'upgradeNotifications' => $upgradeNotifications,
@@ -52,5 +62,14 @@ class AccountController extends Controller
         $upgradeRequest->dismissForUser();
 
         return back();
+    }
+
+    public function cancelCryptoUpgrade(PlanUpgradeRequest $upgradeRequest, PlisioBillingService $cryptoBilling): RedirectResponse
+    {
+        abort_unless($upgradeRequest->user_id === auth()->id(), 403);
+
+        $cryptoBilling->cancelRequest($upgradeRequest, 'Cancelled by customer.');
+
+        return back()->with('status', 'Crypto checkout cancelled. You can start a new payment anytime.');
     }
 }

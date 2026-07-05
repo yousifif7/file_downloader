@@ -168,7 +168,7 @@
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-white mb-4">Plans &amp; pricing</h2>
                 <p class="text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                    Start free today. Upgrade when you need more downloads or additional platforms — pay securely by bank transfer.
+                    Start free today. Upgrade when you need more downloads or additional platforms — pay by bank transfer or crypto.
                 </p>
             </div>
 

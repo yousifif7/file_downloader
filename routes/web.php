@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketCont
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PlisioWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SupportController;
@@ -27,10 +28,14 @@ Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/refund', [PageController::class, 'refund'])->name('refund');
 Route::get('/support', [SupportController::class, 'landing'])->name('support');
 
+Route::post('/webhooks/plisio', [PlisioWebhookController::class, 'handle'])->name('webhooks.plisio');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account');
     Route::post('/account/upgrade-requests/{upgradeRequest}/dismiss', [AccountController::class, 'dismissUpgradeRequest'])
         ->name('account.upgrade-requests.dismiss');
+    Route::post('/account/upgrade-requests/{upgradeRequest}/cancel-crypto', [AccountController::class, 'cancelCryptoUpgrade'])
+        ->name('account.upgrade-requests.cancel-crypto');
     Route::get('/dashboard', fn () => redirect()->route('account'))->name('dashboard');
 
     Route::prefix('support')->name('support.')->group(function () {
@@ -50,7 +55,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/upgrade', [UpgradeController::class, 'index'])->name('upgrade.index');
     Route::get('/upgrade/{plan}', [UpgradeController::class, 'show'])->name('upgrade.show');
-    Route::post('/upgrade/{plan}', [UpgradeController::class, 'store'])->name('upgrade.store');
+    Route::get('/upgrade/{plan}/bank', [UpgradeController::class, 'bank'])->name('upgrade.bank');
+    Route::post('/upgrade/{plan}/bank', [UpgradeController::class, 'storeBank'])->name('upgrade.bank.store');
+    Route::post('/upgrade/{plan}/crypto', [UpgradeController::class, 'storeCrypto'])->name('upgrade.crypto.store');
+    Route::get('/upgrade/{plan}/crypto/success', [UpgradeController::class, 'cryptoSuccess'])->name('upgrade.crypto.success');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

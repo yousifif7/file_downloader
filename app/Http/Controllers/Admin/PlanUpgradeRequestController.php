@@ -34,6 +34,7 @@ class PlanUpgradeRequestController extends Controller
 
         $pendingCount = PlanUpgradeRequest::query()
             ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+            ->where('payment_method', PlanUpgradeRequest::PAYMENT_METHOD_BANK)
             ->count();
 
         return view('admin.upgrade-requests.index', [
