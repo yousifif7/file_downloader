@@ -38,4 +38,18 @@ return [
 
     'activation_hours' => (int) env('BILLING_ACTIVATION_HOURS', 24),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Crypto payments (Plisio)
+    |--------------------------------------------------------------------------
+    */
+    'crypto' => [
+        'enabled' => (bool) env('BILLING_CRYPTO_ENABLED', false),
+        'provider' => 'plisio',
+        'api_key' => env('PLISIO_API_KEY'),
+        'default_currency' => env('PLISIO_DEFAULT_CURRENCY', 'USDT'),
+        'allowed_currencies' => env('PLISIO_ALLOWED_CURRENCIES', 'USDT,BTC,LTC'),
+        'invoice_expire_minutes' => (int) env('PLISIO_INVOICE_EXPIRE_MINUTES', 60),
+    ],
+
 ];

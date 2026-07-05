@@ -63,4 +63,29 @@ class DownloadShowPageTest extends TestCase
         $response->assertOk();
         $response->assertDownload('Test video.mp4');
     }
+
+    public function test_download_sanitizes_slashes_in_media_title(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('downloads/test.mp4', 'video-content');
+
+        $user = User::factory()->create();
+
+        $download = Download::query()->create([
+            'user_id' => $user->id,
+            'source_url' => 'https://www.youtube.com/watch?v=test',
+            'media_title' => 'DrInSaNE - JUST A BOY/Lyrics',
+            'format' => 'best',
+            'status' => Download::STATUS_COMPLETED,
+            'file_path' => 'downloads/test.mp4',
+            'file_size_bytes' => 1024,
+            'completed_at' => now(),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('downloads.file', $download));
+
+        $response->assertOk();
+        $response->assertDownload('DrInSaNE - JUST A BOY-Lyrics.mp4');
+    }
 }

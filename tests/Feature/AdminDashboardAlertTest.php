@@ -30,6 +30,7 @@ class AdminDashboardAlertTest extends TestCase
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'status' => PlanUpgradeRequest::STATUS_PENDING,
+            'payment_method' => PlanUpgradeRequest::PAYMENT_METHOD_BANK,
             'payment_reference' => 'DL-1-PRO',
         ]);
 

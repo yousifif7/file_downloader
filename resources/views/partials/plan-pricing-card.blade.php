@@ -46,7 +46,7 @@
         @if ($plan->slug === 'free')
             <p class="mt-1.5 text-xs text-slate-500">No credit card required</p>
         @elseif ($plan->price_cents)
-            <p class="mt-1.5 text-xs text-slate-500">Billed monthly by bank transfer</p>
+            <p class="mt-1.5 text-xs text-slate-500">Billed monthly · bank or crypto</p>
         @endif
     </div>
 
@@ -73,7 +73,7 @@
                 'btn-secondary' => ! $isRecommended,
             ])>
                 @if ($upgradeMode)
-                    Pay by bank transfer
+                    Choose payment method
                 @elseif ($isRecommended)
                     Upgrade to {{ $plan->name }}
                 @else

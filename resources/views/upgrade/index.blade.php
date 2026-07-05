@@ -7,7 +7,7 @@
         <div class="mb-8">
             <a href="{{ route('account') }}" class="text-sm text-violet-400 hover:text-violet-300">← Back to account</a>
             <h1 class="text-3xl font-bold text-white mt-4">Upgrade your plan</h1>
-            <p class="text-slate-400 mt-2">Choose a plan, pay by bank transfer, then submit your receipt for fast activation.</p>
+            <p class="text-slate-400 mt-2">Choose a plan, then pay by bank transfer or crypto — whichever is easier for you.</p>
         </div>
 
         @if (session('status'))
@@ -16,17 +16,38 @@
 
         @if ($pendingRequests->isNotEmpty())
             <div class="mb-8 card p-5 border-amber-500/20 bg-amber-500/5">
-                <p class="text-sm font-semibold text-amber-200">Pending payment review</p>
+                <p class="text-sm font-semibold text-amber-200">Bank transfer under review</p>
                 <ul class="mt-3 space-y-2 text-sm text-amber-100/90">
                     @foreach ($pendingRequests as $pending)
                         <li>
-                            <strong>{{ $pending->plan?->name }}</strong> — submitted {{ $pending->created_at->diffForHumans() }}
+                            <strong>{{ $pending->plan?->name }}</strong>
+                            — submitted {{ $pending->created_at->diffForHumans() }}
                             (ref: {{ $pending->payment_reference }})
                         </li>
                     @endforeach
                 </ul>
             </div>
         @endif
+
+        @foreach ($pendingCryptoRequests as $pendingCrypto)
+            <div class="mb-8 card p-5 border-slate-700/80 bg-slate-900/40">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="text-sm text-slate-300">
+                        <p class="font-semibold text-white">Open crypto checkout — {{ $pendingCrypto->plan?->name }}</p>
+                        <p class="mt-1 text-slate-400">Finish payment on Plisio or cancel to start fresh.</p>
+                        @if ($pendingCrypto->invoice_url)
+                            <a href="{{ $pendingCrypto->invoice_url }}" target="_blank" rel="noopener" class="inline-block mt-2 text-violet-400 hover:text-violet-300 underline">
+                                Open checkout →
+                            </a>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('account.upgrade-requests.cancel-crypto', $pendingCrypto) }}">
+                        @csrf
+                        <button type="submit" class="text-xs text-slate-500 hover:text-slate-300 underline">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
 
         @foreach ($rejectedRequests as $rejected)
             @include('partials.upgrade-request-notice', ['request' => $rejected])
